@@ -1,51 +1,50 @@
 name: Build Matrimony Android APK
 
-'on':
-  workflow_dispatch:
-  push:
-    paths:
-      - "IlangaiMakkalMatrimonySimpleApp.zip"
-      - ".github/workflows/build-apk.yml"
+on:
+workflow_dispatch:
+push:
+paths:
+- "IlangaiMakkalMatrimonySimpleApp.zip"
+- ".github/workflows/build-apk.yml"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+build:
+runs-on: ubuntu-22.04
 
-    steps:
-      - name: Download project
-        uses: actions/checkout@v4
+steps:
+  - name: Download project
+    uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: "17"
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
+  - name: Set up Android SDK
+    uses: android-actions/setup-android@v3
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
+  - name: Install Android SDK packages
+    run: |
+      sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+      yes | sdkmanager --licenses
 
-      - name: Extract app project
-        run: |
-          mkdir project
-          unzip -q IlangaiMakkalMatrimonySimpleApp.zip -d project
-          test -f project/settings.gradle
+  - name: Set up Gradle
+    uses: gradle/actions/setup-gradle@v4
 
-      - name: Build APK
-        run: gradle -p project assembleDebug
+  - name: Extract app project
+    run: |
+      mkdir -p project
+      unzip -q IlangaiMakkalMatrimonySimpleApp.zip -d project
+      test -f project/settings.gradle
 
-      - name: Save APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Ilangai-Makkal-Matrimony-APK
-          path: project/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+  - name: Build APK
+    run: gradle -p project assembleDebug
+
+  - name: Save APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: Ilangai-Makkal-Matrimony-APK
+      path: project/app/build/outputs/apk/debug/app-debug.apk
+      if-no-files-found: error
+      retention-days: 7
